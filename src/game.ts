@@ -23,8 +23,8 @@ export class RotatorSystem implements ISystem {
     for (let door of doors.entities) {
       
       // get some handy shortcuts
-      let state = door.get(DoorState)
-      let transform = door.get(Transform)
+      let state = door.getComponent(DoorState)
+      let transform = door.getComponent(Transform)
       // check if the rotation needs to be adjusted
       if (state.closed == false && state.fraction < 1) {
         state.fraction += dt
@@ -46,40 +46,40 @@ collideBox.withCollisions = true
 
 // Define fixed walls
 const wall1 = new Entity()
-wall1.add(new Transform({
+wall1.addComponent(new Transform({
   position: new Vector3(5.75, 1, 3),
   scale: new Vector3(1.5, 2, 0.1)
 }))
-wall1.add(collideBox)
+wall1.addComponent(collideBox)
 engine.addEntity(wall1)
 
 
 
 const wall2 = new Entity()
-wall2.add(new Transform({
+wall2.addComponent(new Transform({
   position: new Vector3(2.25, 1, 3),
   scale: new Vector3(1.5, 2, 0.1)
 }))
-wall2.add(collideBox)
+wall2.addComponent(collideBox)
 engine.addEntity(wall2)
 
 // Add the two sides to the door
 const doorL = new Entity()
-doorL.add(new Transform({
+doorL.addComponent(new Transform({
   position: new Vector3(0.5, 0, 0),
   scale: new Vector3(1.1, 2, 0.05)
 }))
-doorL.add(collideBox)
-doorL.add(new DoorState(new Vector3(0.5, 0, 0), new Vector3(1.25, 0, 0)))
+doorL.addComponent(collideBox)
+doorL.addComponent(new DoorState(new Vector3(0.5, 0, 0), new Vector3(1.25, 0, 0)))
 engine.addEntity(doorL)
 
 const doorR = new Entity()
-doorR.add(new Transform({
+doorR.addComponent(new Transform({
   position: new Vector3(-0.5, 0, 0),
   scale: new Vector3(1.1, 2, 0.05)
 }))
-doorR.add(collideBox)
-doorR.add(new DoorState(new Vector3(-0.5, 0, 0), new Vector3(-1.25, 0, 0)))
+doorR.addComponent(collideBox)
+doorR.addComponent(new DoorState(new Vector3(-0.5, 0, 0), new Vector3(-1.25, 0, 0)))
 engine.addEntity(doorR)
 
 // Define a material to color the door red
@@ -89,12 +89,12 @@ doorMaterial.metallic = 0.9
 doorMaterial.roughness = 0.1
 
 // Assign the material to the door
-doorL.add(doorMaterial)
-doorR.add(doorMaterial)
+doorL.addComponent(doorMaterial)
+doorR.addComponent(doorMaterial)
 
 // This parent entity holds the state for both door sides
 const doorParent = new Entity()
-doorParent.add(new Transform({
+doorParent.addComponent(new Transform({
   position: new Vector3(4, 1, 3)
 }))
 engine.addEntity(doorParent)
@@ -105,15 +105,15 @@ doorR.setParent(doorParent)
 
 
 // Set the click behavior for the door
-doorL.add(
-  new OnClick(e => {
+doorL.addComponent(
+  new OnPointerDown(e => {
     let parent = doorL.getParent()
     openDoor(parent)
   })
 )
 
-doorR.add(
-  new OnClick(e => {
+doorR.addComponent(
+  new OnPointerDown(e => {
     let parent = doorR.getParent()
     openDoor(parent)
   })
@@ -122,7 +122,7 @@ doorR.add(
 function openDoor(parent: Entity){
   for(let id in parent.children){
     const child = parent.children[id]
-    let state = child.get(DoorState)
+    let state = child.getComponent(DoorState)
     state.closed = !state.closed
   }   
 }
