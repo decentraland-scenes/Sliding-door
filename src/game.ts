@@ -106,20 +106,20 @@ doorR.setParent(doorParent)
 
 // Set the click behavior for the door
 doorL.addComponent(
-  new OnPointerDown(e => {
+  new OnClick(e => {
     let parent = doorL.getParent()
     openDoor(parent)
   })
 )
 
 doorR.addComponent(
-  new OnPointerDown(e => {
+  new OnClick(e => {
     let parent = doorR.getParent()
     openDoor(parent)
   })
 )
 
-function openDoor(parent: Entity){
+function openDoor(parent: IEntity){
   for(let id in parent.children){
     const child = parent.children[id]
     let state = child.getComponent(DoorState)
