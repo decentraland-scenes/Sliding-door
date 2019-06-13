@@ -119,7 +119,7 @@ doorR.addComponent(
   })
 )
 
-function openDoor(parent: IEntity){
+function openDoor(parent: Entity){
   for(let id in parent.children){
     const child = parent.children[id]
     let state = child.getComponent(DoorState)
