@@ -5,18 +5,32 @@ export class DoorState {
   fraction: number = 0
   closedPos: Vector3
   openPos: Vector3
-  constructor(closed: Vector3, open: Vector3){
+  doorId: number
+  constructor(closed: Vector3, open: Vector3, doorId: number){
     this.closedPos = closed
-    this.openPos = open
+	this.openPos = open
+	this.doorId = doorId
   }
 }
+
 
 
 // a group to keep track of all entities with a DoorState component
 const doors = engine.getComponentGroup(DoorState)
 
-// a system to carry out the rotation
-export class RotatorSystem implements ISystem {
+// a message bus to sync state for all players
+const sceneMessageBus = new MessageBus()
+
+
+/// --- Define a custom type to pass in messages ---
+type NewDoorState = {
+	doorID: number,
+	state: boolean
+  };
+
+
+// a system to carry out the opening of doors
+export class OpenSystem implements ISystem {
  
   update(dt: number) {
     // iterate over the doors in the component group
@@ -38,7 +52,7 @@ export class RotatorSystem implements ISystem {
 }
 
 // Add system to engine
-engine.addSystem(new RotatorSystem())
+engine.addSystem(new OpenSystem())
 
 // Define a reusable box shape
 let collideBox = new BoxShape()
@@ -70,7 +84,7 @@ doorL.addComponent(new Transform({
   scale: new Vector3(1.1, 2, 0.05)
 }))
 doorL.addComponent(collideBox)
-doorL.addComponent(new DoorState(new Vector3(0.5, 0, 0), new Vector3(1.25, 0, 0)))
+doorL.addComponent(new DoorState(new Vector3(0.5, 0, 0), new Vector3(1.25, 0, 0), 1))
 engine.addEntity(doorL)
 
 const doorR = new Entity()
@@ -79,7 +93,7 @@ doorR.addComponent(new Transform({
   scale: new Vector3(1.1, 2, 0.05)
 }))
 doorR.addComponent(collideBox)
-doorR.addComponent(new DoorState(new Vector3(-0.5, 0, 0), new Vector3(-1.25, 0, 0)))
+doorR.addComponent(new DoorState(new Vector3(-0.5, 0, 0), new Vector3(-1.25, 0, 0), 1))
 engine.addEntity(doorR)
 
 // Define a material to color the door red
@@ -107,26 +121,59 @@ doorR.setParent(doorParent)
 // Set the click behavior for the door
 doorL.addComponent(
   new OnClick(e => {
-    let parent = doorL.getParent()
-    openDoor(parent)
+    openDoor(doorL)
   })
 )
 
 doorR.addComponent(
   new OnClick(e => {
-    let parent = doorR.getParent()
-    openDoor(parent)
+   
+    openDoor(doorR)
   })
 )
 
-function openDoor(parent: IEntity){
-  for(let id in parent.children){
-    const child = parent.children[id]
-    let state = child.getComponent(DoorState)
-    state.closed = !state.closed
-  }   
+function openDoor(door: IEntity){
+  let currentState = door.getComponent(DoorState)
+  let newState: NewDoorState = {
+		doorID: 1,   
+		state: !currentState.closed,
+	  } 
+  sceneMessageBus.emit("doorToggle", newState)  
 }
 
+  
+  // To execute when a door is toggled
+  sceneMessageBus.on("doorToggle", (info: NewDoorState) => {	
+	for(let door of doors.entities){
+		let state = door.getComponent(DoorState)
+		if (state.doorId == info.doorID){
+			state.closed = info.state
+		}
+		
+	  }
+  });
+  
+  // To get the initial state of the scene when joining
+  sceneMessageBus.emit("getDoorState",{})
+  
+  // To return the initial state of the scene to new players
+  sceneMessageBus.on("getDoorState", () => {
+	  let currentState: NewDoorState = {
+		   state: doorL.getComponent(DoorState).closed,
+		   doorID: 1
+		  } 
+	  sceneMessageBus.emit("doorToggle", currentState)
+  });
+  
 
 
 
+
+// ground
+let floor = new Entity()
+floor.addComponent(new GLTFShape("models/FloorBaseGrass.glb"))
+floor.addComponent(new Transform({
+  position: new Vector3(8, 0, 8), 
+  scale:new Vector3(1.6, 0.1, 1.6)
+}))
+engine.addEntity(floor)
