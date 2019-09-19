@@ -1,44 +1,4 @@
-// custom component to handle opening and closing doors
-@Component('doorState')
-export class DoorState {
-  closed: boolean = true
-  fraction: number = 0
-  closedPos: Vector3
-  openPos: Vector3
-  constructor(closed: Vector3, open: Vector3){
-    this.closedPos = closed
-    this.openPos = open
-  }
-}
-
-
-// a group to keep track of all entities with a DoorState component
-const doors = engine.getComponentGroup(DoorState)
-
-// a system to carry out the rotation
-export class RotatorSystem implements ISystem {
- 
-  update(dt: number) {
-    // iterate over the doors in the component group
-    for (let door of doors.entities) {
-      
-      // get some handy shortcuts
-      let state = door.getComponent(DoorState)
-      let transform = door.getComponent(Transform)
-      // check if the rotation needs to be adjusted
-      if (state.closed == false && state.fraction < 1) {
-        state.fraction += dt
-        transform.position = Vector3.Lerp(state.closedPos, state.openPos, state.fraction)
-      } else if (state.closed == true && state.fraction > 0) {
-        state.fraction -= dt
-        transform.position = Vector3.Lerp(state.closedPos, state.openPos, state.fraction)   
-      }
-    }
-  }
-}
-
-// Add system to engine
-engine.addSystem(new RotatorSystem())
+import utils from "../node_modules/decentraland-ecs-utils/index"
 
 
 // Define fixed walls
@@ -49,8 +9,6 @@ wall1.addComponent(new Transform({
 }))
 wall1.addComponent(new BoxShape())
 engine.addEntity(wall1)
-
-
 
 const wall2 = new Entity()
 wall2.addComponent(new Transform({
@@ -67,7 +25,6 @@ doorL.addComponent(new Transform({
   scale: new Vector3(1.1, 2, 0.05)
 }))
 doorL.addComponent(new BoxShape())
-doorL.addComponent(new DoorState(new Vector3(0.5, 0, 0), new Vector3(1.25, 0, 0)))
 engine.addEntity(doorL)
 
 const doorR = new Entity()
@@ -76,24 +33,63 @@ doorR.addComponent(new Transform({
   scale: new Vector3(1.1, 2, 0.05)
 }))
 doorR.addComponent(new BoxShape())
-doorR.addComponent(new DoorState(new Vector3(-0.5, 0, 0), new Vector3(-1.25, 0, 0)))
 engine.addEntity(doorR)
 
-// Define a material to color the door red
+// Define a material to color the doors red
 const doorMaterial = new Material()
 doorMaterial.albedoColor = Color3.Red()
 doorMaterial.metallic = 0.9
 doorMaterial.roughness = 0.1
 
-// Assign the material to the door
+// Assign the material to the doors
 doorL.addComponent(doorMaterial)
 doorR.addComponent(doorMaterial)
+
+// Define open and closed positions for both doors
+let doorLClosed =  new Vector3(0.5, 0, 0)
+let doorLOpen = new Vector3(1.25, 0, 0)
+let doorRClosed =  new Vector3(-0.5, 0, 0)
+let doorROpen = new Vector3(-1.25, 0, 0)
+
 
 // This parent entity holds the state for both door sides
 const doorParent = new Entity()
 doorParent.addComponent(new Transform({
   position: new Vector3(4, 1, 3)
 }))
+
+//toggle behavior for door
+doorParent.addComponent(new utils.ToggleComponent(utils.ToggleState.Off, value =>{
+	if (value == utils.ToggleState.On){
+		doorL.addComponentOrReplace(
+			new utils.MoveTransformComponent(
+				doorLClosed,
+				doorLOpen,
+				1
+			))
+		doorR.addComponentOrReplace(
+				new utils.MoveTransformComponent(
+					doorRClosed,
+					doorROpen,
+					1
+				))
+	}
+	else{
+		doorL.addComponentOrReplace(
+			new utils.MoveTransformComponent(
+				doorLOpen,
+				doorLClosed,
+				1
+			))
+		doorR.addComponentOrReplace(
+				new utils.MoveTransformComponent(
+					doorROpen,
+					doorRClosed,
+					1
+				))
+	}
+}))
+
 engine.addEntity(doorParent)
 
 // Set the door as a child of doorPivot
@@ -104,26 +100,12 @@ doorR.setParent(doorParent)
 // Set the click behavior for the door
 doorL.addComponent(
   new OnClick(e => {
-    let parent = doorL.getParent()
-    openDoor(parent)
+    doorParent.getComponent(utils.ToggleComponent).toggle()
   })
 )
 
 doorR.addComponent(
   new OnClick(e => {
-    let parent = doorR.getParent()
-    openDoor(parent)
+    doorParent.getComponent(utils.ToggleComponent).toggle()
   })
 )
-
-function openDoor(parent: IEntity){
-  for(let id in parent.children){
-    const child = parent.children[id]
-    let state = child.getComponent(DoorState)
-    state.closed = !state.closed
-  }   
-}
-
-
-
-
