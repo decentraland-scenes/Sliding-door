@@ -42,17 +42,17 @@ doorR.addComponent(
 doorR.addComponent(new BoxShape())
 engine.addEntity(doorR)
 
-// Define a material to color the doors red
+// Define a material to color the door sides red
 const doorMaterial = new Material()
 doorMaterial.albedoColor = Color3.Red()
 doorMaterial.metallic = 0.9
 doorMaterial.roughness = 0.1
 
-// Assign the material to the doors
+// Assign the material to both door sides
 doorL.addComponent(doorMaterial)
 doorR.addComponent(doorMaterial)
 
-// Define open and closed positions for both doors
+// Define open and closed positions for both door sides
 let doorLClosed = new Vector3(0.5, 0, 0)
 let doorLOpen = new Vector3(1.25, 0, 0)
 let doorRClosed = new Vector3(-0.5, 0, 0)
@@ -66,10 +66,11 @@ doorParent.addComponent(
   })
 )
 
-//toggle behavior for door
+//toggle behavior for doorParent
 doorParent.addComponent(
   new utils.ToggleComponent(utils.ToggleState.Off, (value) => {
     if (value == utils.ToggleState.On) {
+      // open doors
       doorL.addComponentOrReplace(
         new utils.MoveTransformComponent(doorLClosed, doorLOpen, 1)
       )
@@ -77,6 +78,7 @@ doorParent.addComponent(
         new utils.MoveTransformComponent(doorRClosed, doorROpen, 1)
       )
     } else {
+      // close doors
       doorL.addComponentOrReplace(
         new utils.MoveTransformComponent(doorLOpen, doorLClosed, 1)
       )
@@ -89,11 +91,11 @@ doorParent.addComponent(
 
 engine.addEntity(doorParent)
 
-// Set the door as a child of doorPivot
+// Set the doorParent as a parent of both door sides
 doorL.setParent(doorParent)
 doorR.setParent(doorParent)
 
-// Set the click behavior for the door
+// Set the click behavior for both door sides
 doorL.addComponent(
   new OnPointerDown(
     (e) => {
