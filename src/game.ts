@@ -5,7 +5,7 @@ const wall1 = new Entity()
 wall1.addComponent(
   new Transform({
     position: new Vector3(5.75, 1, 3),
-    scale: new Vector3(1.5, 2, 0.1),
+    scale: new Vector3(1.5, 2, 0.1)
   })
 )
 wall1.addComponent(new BoxShape())
@@ -15,7 +15,7 @@ const wall2 = new Entity()
 wall2.addComponent(
   new Transform({
     position: new Vector3(2.25, 1, 3),
-    scale: new Vector3(1.5, 2, 0.1),
+    scale: new Vector3(1.5, 2, 0.1)
   })
 )
 wall2.addComponent(new BoxShape())
@@ -26,7 +26,7 @@ const doorL = new Entity()
 doorL.addComponent(
   new Transform({
     position: new Vector3(0.5, 0, 0),
-    scale: new Vector3(1.1, 2, 0.05),
+    scale: new Vector3(1.1, 2, 0.05)
   })
 )
 doorL.addComponent(new BoxShape())
@@ -36,7 +36,7 @@ const doorR = new Entity()
 doorR.addComponent(
   new Transform({
     position: new Vector3(-0.5, 0, 0),
-    scale: new Vector3(1.1, 2, 0.05),
+    scale: new Vector3(1.1, 2, 0.05)
   })
 )
 doorR.addComponent(new BoxShape())
@@ -53,23 +53,23 @@ doorL.addComponent(doorMaterial)
 doorR.addComponent(doorMaterial)
 
 // Define open and closed positions for both door sides
-let doorLClosed = new Vector3(0.5, 0, 0)
-let doorLOpen = new Vector3(1.25, 0, 0)
-let doorRClosed = new Vector3(-0.5, 0, 0)
-let doorROpen = new Vector3(-1.25, 0, 0)
+const doorLClosed = new Vector3(0.5, 0, 0)
+const doorLOpen = new Vector3(1.25, 0, 0)
+const doorRClosed = new Vector3(-0.5, 0, 0)
+const doorROpen = new Vector3(-1.25, 0, 0)
 
 // This parent entity holds the state for both door sides
 const doorParent = new Entity()
 doorParent.addComponent(
   new Transform({
-    position: new Vector3(4, 1, 3),
+    position: new Vector3(4, 1, 3)
   })
 )
 
 //toggle behavior for doorParent
 doorParent.addComponent(
   new utils.ToggleComponent(utils.ToggleState.Off, (value) => {
-    if (value == utils.ToggleState.On) {
+    if (value === utils.ToggleState.On) {
       // open doors
       doorL.addComponentOrReplace(
         new utils.MoveTransformComponent(doorLClosed, doorLOpen, 1)
